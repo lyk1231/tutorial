@@ -1,0 +1,54 @@
+import pandas as pd
+import os
+import matplotlib.pyplot as plt
+
+# read files > compile
+df_all = pd.DataFrame()
+folder_name = './Sales_Data'
+files = [file for file in os.listdir(folder_name)]
+
+for file in files:
+    temp_df = pd.read_csv(folder_name + '/' + file)
+    df_all = pd.concat([df_all, temp_df])
+    
+#dropna > remove repeat headers
+df_all = df_all.dropna()
+df_all = df_all[df_all['Order Date'].str[0:3] != 'Ord']
+df_all.reset_index(drop=True, inplace=True)
+df_all.head()
+
+#total sales/mo (graph)
+df_all['Quantity Ordered'] = pd.to_numeric(df_all['Quantity Ordered'])
+df_all['Price Each'] = pd.to_numeric(df_all['Price Each'])
+df_all['Sales'] = df_all['Quantity Ordered'] * df_all['Price Each']
+df_all['Month'] = df_all['Order Date'].str[0:2]
+
+months = [month for month, df in df_all.groupby('Month')]
+monthly_sales = df_all.groupby(df_all['Month']).sum('Sales')['Sales']
+
+plt.xlabel('Month')
+plt.ylabel('Total Sales')
+plt.bar(months, monthly_sales)
+
+# sales/state (graph)
+df_all['State'] = df_all['Purchase Address'].apply(lambda x: x.split(',')[1] + ' ' + x.split(',')[2].split(' ')[1])
+states = [state for state, df in df_all.groupby('State')]
+states_sales = df_all.groupby('State').sum('Sales')['Sales']
+
+plt.xticks(rotation='vertical')
+plt.bar(states, states_sales)
+
+
+# sales/hr (graph)
+df_all['Hour'] = pd.to_datetime(df_all['Order Date'])
+df_all['Hour'] = df_all['Hour'].dt.hour
+
+df_all.head()
+
+hours = [hour for hour, df in df_all.groupby('Hour')]
+hours_sales = df_all.groupby(['Hour']).count()['Sales']
+
+plt.xticks(hours)
+plt.bar(hours, hours_sales)
+
+
