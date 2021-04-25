@@ -1,0 +1,68 @@
+import pandas as pd
+
+df = pd.read_csv("pokemon_data.csv")
+# df_xlsx = pd.read_excel('pokemon_data.xlsx')
+# df_txt = pd.read_csv('pokemon_data.txt', delimiter='\t')
+
+df.describe()
+
+df.columns
+
+#column
+df[['Name','HP']][0:2]
+
+#row
+df.iloc[0:4]
+
+#specific location [row, column]
+df.iloc[2,1]
+
+# for index, row in df.iterrows():
+#     print(index, row[['Name','HP']])
+
+#loc for textual search (filter)
+df.loc[df['HP'] >= 50]
+
+#sort
+df = df.sort_values(['Type 1', 'HP'], ascending=[1, 0])
+
+df.to_csv('pokemon_data-modified.csv', index=0)
+# df.to_excel('pokemon_data-modified.csv', index=0)
+
+#filter
+new_df = df.loc[(df['Type 1'] == 'Grass') & (df['Type 2'] == 'Poison') & (df['HP'] > 70)]
+#reset index & drop old index column
+new_df.reset_index(drop=True, inplace=True)
+
+#drop any w 'Mega'
+df.loc[~df['Name'].str.contains('Mega')]
+
+#flags=re.I is ignore capitalization
+import re
+df.loc[df['Type 1'].str.contains('fire|grass', flags=re.I, regex=True)]
+
+#contains 'pi'. If I want to start w pi, then '^pi[a-z]*'
+df.loc[df['Name'].str.contains('pi[a-z]*', flags=re.I, regex=True)]
+
+df = pd.read_csv('pokemon_data.csv')
+#replace words
+df.loc[df['Type 1'] == 'Fire', 'Type 1'] = 'Flamer'
+
+#create column based on another condition
+df.loc[df['Type 1'] == 'Fire', 'Legendary'] = True
+
+#update multiple columns based on condition
+df.loc[df['HP'] > 50, ['Generation','Legendary']] = ['Test 1', 'Test 2']
+
+
+#groupby
+df = pd.read_csv('pokemon_data.csv')
+df.groupby(['Type 1']).mean().sort_values('Defense', ascending=False)
+
+df['count'] = 1
+df.groupby(['Type 1', 'Type 2']).count()['count'].reset_index()
+
+#working with large data sets
+for df in pd.read_csv('pokemon_data.csv', chunksize=5):
+    print("chunking")
+    print(df)
